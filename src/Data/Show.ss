@@ -8,44 +8,47 @@
           showArrayImpl
           cons
           join)
-  (import (only (rnrs base) define lambda let + = cond else if 
-                            string number->string string-append)
+  (import (only (rnrs base) define lambda let + = cond else if)
           (only (chezscheme) format)
           (prefix (purs runtime lib) rt:)
+          (only (purs runtime bytestring) number->bytestring string->bytestring bytestring->string bytestring-append)
           (prefix (purs runtime srfi :214) srfi:214:))
 
   (define showIntImpl
     (lambda (n)
-      (number->string n)))
+      (number->bytestring n)))
 
   (define showNumberImpl
     (lambda (n)
-      (number->string n)))
+      (number->bytestring n)))
 
   (define showCharImpl
     (lambda (c)
-      (format "~s" c)))
+      (string->bytestring (format "~s" c))))
 
   (define showStringImpl
     (lambda (s)
-      (format "~s" s)))
+      (string->bytestring (format "~s" (bytestring->string s)))))
 
   (define (string-join xs separator)
     (let ([len (rt:array-length xs)])
       (cond
-        [(= len 0) ""]
+        [(= len 0) (string->bytestring "")]
         [(= len 1) (rt:array-ref xs 0)]
         (else
           (let recur ([i 1]
                       [buffer (rt:array-ref xs 0)])
             (if (= len i)
               buffer
-              (recur (+ i 1) (string-append buffer separator (rt:array-ref xs i)))))))))
+              (recur (+ i 1) (bytestring-append buffer (bytestring-append separator (rt:array-ref xs i))))))))))
 
   (define showArrayImpl
     (lambda (f)
       (lambda (xs)
-        (string-append "[" (string-join (srfi:214:flexvector-map f xs) ",") "]"))))
+        (bytestring-append
+          (string->bytestring "[")
+          (bytestring-append (string-join (srfi:214:flexvector-map f xs) (string->bytestring ","))
+                             (string->bytestring "]"))))))
 
   (define cons
     (lambda (head)
