@@ -5,33 +5,33 @@
           unsafeGet
           unsafeSet
           unsafeDelete)
-  (import (only (rnrs base) define lambda let)
-          (prefix (purs runtime lib) rt:)
-          (prefix (purs runtime srfi :125) srfi:125:))
+  (import (chezscheme)
+          (only (purs runtime bytestring) bytestring->symbol)
+          (prefix (purs runtime) rt:))
 
   (define unsafeHas
     (lambda (label)
       (lambda (rec)
-        (srfi:125:hash-table-contains? rec label))))
+        (symbol-hashtable-contains? rec (bytestring->symbol label)))))
 
   (define unsafeGet
     (lambda (label)
       (lambda (rec)
-        (rt:object-ref rec label))))
+        (rt:object-ref rec (bytestring->symbol label)))))
 
   (define unsafeSet
     (lambda (label)
       (lambda (value)
         (lambda (rec)
           (let ([rec-copy (rt:object-copy rec)])
-            (rt:object-set! rec-copy label value)
+            (rt:object-set! rec-copy (bytestring->symbol label) value)
             rec-copy)))))
 
   (define unsafeDelete
     (lambda (label)
       (lambda (rec)
         (let ([rec-copy (rt:object-copy rec)])
-          (srfi:125:hash-table-delete! rec-copy label)
+          (symbol-hashtable-delete! rec-copy (bytestring->symbol label))
           rec-copy))))
 
 )

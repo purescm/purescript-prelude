@@ -4,7 +4,7 @@
   (export intercalate)
   (import (only (rnrs base) define lambda if let cond else = +)
           (only (purs runtime bytestring) string->bytestring bytestring-append)
-          (prefix (purs runtime lib) rt:))
+          (prefix (purs runtime) rt:))
 
   (define intercalate
     (lambda (separator)
