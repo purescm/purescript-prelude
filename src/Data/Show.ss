@@ -11,7 +11,6 @@
   (import (only (rnrs base) define lambda let + = cond else if)
           (only (chezscheme) format)
           (prefix (purs runtime) rt:)
-          (only (purs runtime bytestring) number->bytestring string->bytestring bytestring->string bytestring-append)
           (prefix (purs runtime srfi :214) srfi:214:))
 
   (define showIntImpl
