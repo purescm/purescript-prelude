@@ -6,11 +6,18 @@
           showCharImpl
           showStringImpl
           showArrayImpl
-          cons
+          (rename [consImpl cons])
           join)
-  (import (only (rnrs base) define lambda let + = cond else if)
-          (only (chezscheme) format)
+  (import (chezscheme)
           (prefix (purs runtime) rt:)
+          (only (purs runtime bytestring) bytestring
+                                          number->bytestring
+                                          string->bytestring
+                                          bytestring-uncons-code-unit
+                                          bytestring->string
+                                          bytestring-append
+                                          bytestring-make-regex
+                                          bytestring-regex-replace-all)
           (prefix (purs runtime srfi :214) srfi:214:))
 
   (define showIntImpl
@@ -27,7 +34,25 @@
 
   (define showStringImpl
     (lambda (s)
-      (string->bytestring (format "~s" (bytestring->string s)))))
+      (let ([regex (bytestring-make-regex (string->bytestring "[\\x00-\\x1F\\x7F\"]"))]
+            [replacement (lambda (match)
+                           (let-values ([(c _) (bytestring-uncons-code-unit match)])
+                             (cond
+                               [(char=? c #\") (bytestring #\\ c)]
+                               [(char=? c #\\) (bytestring #\\ c)]
+                               [(char=? c #\alarm) (bytestring #\\ #\a)]
+                               [(char=? c #\backspace) (bytestring #\\ #\b)]
+                               [(char=? c #\page) (bytestring #\\ #\f)]
+                               [(char=? c #\newline) (bytestring #\\ #\n)]
+                               [(char=? c #\return) (bytestring #\\ #\r)]
+                               [(char=? c #\tab) (bytestring #\\ #\t)]
+                               [(char=? c #\vtab) (bytestring #\\ #\v)]
+                               [else c])))])
+        (bytestring-append
+          (bytestring #\")
+          (bytestring-append
+            (bytestring-regex-replace-all regex s replacement)
+            (bytestring #\"))))))
 
   (define (string-join xs separator)
     (let ([len (rt:array-length xs)])
@@ -49,7 +74,7 @@
           (bytestring-append (string-join (srfi:214:flexvector-map f xs) (string->bytestring ","))
                              (string->bytestring "]"))))))
 
-  (define cons
+  (define consImpl
     (lambda (head)
       (lambda (tail)
         (srfi:214:flexvector-append (rt:make-array head) tail))))

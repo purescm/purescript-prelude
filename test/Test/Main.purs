@@ -16,6 +16,7 @@ main = do
     testIntDivMod
     testIntDegree
     testRecordInstances
+    testShow
     testGenericRep
 
 foreign import testNumberShow :: (Number -> String) -> Effect Unit
@@ -168,3 +169,9 @@ testRecordInstances = do
   assert "Record top" $
     (top :: { a :: Boolean }).a
     == top
+
+testShow :: Effect Unit
+testShow = do
+  assert "No escaping" $ show "foo" == "\"foo\""
+  assert "Escape quote" $ show "\"" == "\"\\\"\""
+  assert "Newline" $ show "\n" == "\"\\n\""
